@@ -1,98 +1,76 @@
-//#include <stdio.h>
-#undef cout
-
-#include <Arduino.h>
+#include <Arduino.h> /* header files | required modules */
 #include <Vector.h>
+#include <Servo.h>
 #include "SerialStream/SerialStream.hpp"
-
-#include "OtherBoard/ob.hpp"
-
-//#define UNOBAUD 9600
-#define OUT OUTPUT
-#define IN INPUT
-
-#define UltrsncTrigPin A0
-#define UltrsncEchoPin 8
+#include "Ultrasonic/Ultrasonic.h"
 
 
-auto wait = delay;
+/// QOL variables|functions ///
+
 auto s = &Serial;
-
-Vector<uint8>& rand_3_num() {
-	static uint8 a[3];
-    static Vector<uint8> code(a, 3);
-	for (unsigned int i = 0; i < 3; i++) {
-		code[i] = (uint8)(rand() % 10);
-	};
-    
-    return code;
-};
+void wait(int seconds) {delay(seconds * 1000);}
+auto ms_wait = delay;
+auto mc_wait = delayMicroseconds;
 
 
+/// @brief Definition of all using pins
+namespace Pins {
+    namespace Ultrasonic {
+        int trigger_pin = A0;
+        int echo_pin = 8;
+    }
 
-///            ///
-/// Namespaces ///
-///            ///
-
-namespace Ultrasonic {
-	const float cmRatio = 0.017F;
-	byte trigger, echo;
-
-	/**
-	 * 
-	 */
-	void init(byte trigpin/* = -1 */, byte echopin/* = -1 */) {
-		//if (trigpin == -1 || echopin == -1)
-		//	return;
-		//
-
-		trigger = trigpin;
-		echo = echopin;
-
-		pinMode(trigger, OUT);
-		pinMode(echo, IN);
-		
-	};
-
-	/**
-	 * @brief
-	 * @return duration
-	 */
-	unsigned long detect() {
-		digitalWrite(trigger, LOW);
-		delayMicroseconds(2);
-		digitalWrite(trigger, HIGH);
-		delayMicroseconds(10);
-		digitalWrite(trigger, LOW);
-
-		unsigned long duration = pulseIn(echo, HIGH);
-		return duration;
-	};
+    int Servo = 9;
+}
 
 
-	/**
-	 * @param void
-	 * @return CM in distance
-	 * @brief hi
-	 */
-	float detectCM() {
-		return ( (float) detect() ) * cmRatio;
-	};
-};
+/// Component Controllers ///
+
+Ultrasonic uts1(Pins::Ultrasonic::trigger_pin, Pins::Ultrasonic::echo_pin);
+Servo servo;
 
 
-/*
-** SETUP AND LOOP
-*/
+// functions i guess //
 
+int triangle_wave(int n, int floor, int ceiling) {
+    int range = ceiling - floor;
+
+    int cyclePosition = (n - floor) % (2 * range);
+    if (cyclePosition < 0) {
+        cyclePosition += 2 * range;
+    }
+
+    if (cyclePosition > range) {
+        return ceiling - (cyclePosition - range);
+    } //else 
+    return floor + cyclePosition;    
+}
+
+
+int angle = 0;
+void servo_next_angle(int multiplier = 1) {
+    angle < 360 ? angle++ : angle = 1;
+    servo.write(triangle_wave(angle * multiplier, 0, 189));
+}
+
+
+
+/// setup && loop ///
 void setup() {
 	s->begin(/* UNOBAUD = */ 9600);
-	Ultrasonic::init(UltrsncTrigPin, UltrsncEchoPin);
+	servo.attach(Pins::Servo);
+	servo.write(0); // initialize to angle 0
 
+    wait(3); // wait for 3 seconds
 }
 
 void loop() {
-	wait(1000);
-	
-	cout << Ultrasonic::detectCM() << " cm" << '\n';
+	wait(0.3);
+	auto dist = uts1.detectCM();
+	//cout << dist << endl;
+	//cout << "loop" << endl;
+
+	if (dist <= 5.0F) {
+        servo_next_angle(6);
+	};
 }
