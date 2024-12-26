@@ -21,16 +21,18 @@ namespace Pins {
     }
 
     int Servo = 9;
+
+    int PhotoEl = 10;
 }
 
 
 /// Component Controllers ///
 
-Ultrasonic uts1(Pins::Ultrasonic::trigger_pin, Pins::Ultrasonic::echo_pin);
+Ultrasonic Ultrasonic1(Pins::Ultrasonic::trigger_pin, Pins::Ultrasonic::echo_pin);
 Servo servo;
 
 
-// functions i guess //
+/// functions i guess ///
 
 int triangle_wave(int n, int floor, int ceiling) {
     int range = ceiling - floor;
@@ -47,17 +49,27 @@ int triangle_wave(int n, int floor, int ceiling) {
 }
 
 
+
+
+
 int angle = 0;
 void servo_next_angle(int multiplier = 1) {
     angle < 360 ? angle++ : angle = 1;
     servo.write(triangle_wave(angle * multiplier, 0, 189));
 }
-
+void servo_previous_angle(int mul = 1) {
+    angle < 1 ? angle = 360 : angle--;
+    servo.write(triangle_wave(angle * mul, 0, 189));
+}
 
 
 /// setup && loop ///
+
 void setup() {
 	s->begin(/* UNOBAUD = */ 9600);
+
+    pinMode(Pins::PhotoEl, INPUT);
+
 	servo.attach(Pins::Servo);
 	servo.write(0); // initialize to angle 0
 
@@ -65,12 +77,7 @@ void setup() {
 }
 
 void loop() {
-	wait(0.3);
-	auto dist = uts1.detectCM();
-	//cout << dist << endl;
-	//cout << "loop" << endl;
-
-	if (dist <= 5.0F) {
-        servo_next_angle(6);
-	};
+	wait(1);
+    int pdist = digitalRead(Pins::PhotoEl);
+    cout << pdist << '\n';
 }
