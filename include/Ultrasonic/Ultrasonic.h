@@ -6,19 +6,19 @@
 
 class Ultrasonic {
 private:
-	byte trigger, echo;
+	unsigned trigger, echo;
 public:
 	static const float cmRatio = 0.017F;
 
-	byte get_trigpin() {
+	unsigned get_trigpin() {
 		return trigger;
 	}
-	byte get_echopin(){return echo;}
+	unsigned get_echopin(){return echo;}
 
 	/**
 	 * 
 	 */
-	Ultrasonic(byte trigpin/* = -1 */, byte echopin/* = -1 */) {
+	void init(unsigned trigpin/* = -1 */, unsigned echopin/* = -1 */) {
 		//if (trigpin == -1 || echopin == -1)
 		//	return;
 		//
@@ -50,7 +50,7 @@ public:
 	/**
 	 * @param void
 	 * @return CM in distance
-	 * @brief hi
+	 * @brief 
 	 */
 	float detectCM() {
 		return ( (float) detect() ) * cmRatio;
