@@ -13,6 +13,9 @@ void wait(float seconds) {delay(seconds * 1000);}
 auto ms_wait = delay;
 auto mc_wait = delayMicroseconds;
 
+const float weight_minthreshold = 0.01;
+const float weight_maxthreshold = 1;
+
 
 /// @brief Definition of all using pins
 namespace Pins {
@@ -70,7 +73,7 @@ inline TrashType determine_trashtype(int photoelectric_data, int capacitive_data
 /// setup && loop ///
 
 void setup() {
-	Serial.begin(/*UNOBAUD*/ 115200);
+	Serial.begin(/*UNOBAUD*/ 9600); // for faster prints: 115200
 
 	Ultrasonic1.init(Pins::Ultrasonic::trig, Pins::Ultrasonic::echo);
 
@@ -86,14 +89,14 @@ void loop() {
 	wait(1);
 	float distCM = Ultrasonic1.detectCM();
 	float weightKG = Pins::Weight.read(); // TODO: convert analog signal to kilograms
-	if (distCM > 50.0F && weightKG) {
+	if (distCM > 50.0F && weightKG <= weight_minthreshold) {
 		return;
 	}
 	
 	// boolean because its digital pins
-	bool PE_data1 = Pins::PhotoEl_1.read() == HIGH;
-	bool PE_data2 = Pins::PhotoEl_2.read() == HIGH;
-	bool PE_data3 = Pins::PhotoEl_3.read() == HIGH;
+	bool PE_data1 = Pins::PhotoEl_1.read() /* == HIGH */;
+	bool PE_data2 = Pins::PhotoEl_2.read() /* == HIGH */;
+	bool PE_data3 = Pins::PhotoEl_3.read() /* == HIGH */;
 
 	cout << PE_data1 << endl << PE_data2 << endl << PE_data3 << endl;
 
