@@ -1,7 +1,7 @@
 #include <Arduino.h> /* header files | required modules */
 #include <Vector.h>
 #include <Servo.h>
-#include "Pin/Pin.hpp"
+#include <Pin/Pin.hpp>
 #include "SerialStream/SerialStream.hpp"
 #include "Ultrasonic/Ultrasonic.h"
 
@@ -81,6 +81,8 @@ void setup() {
 }
 
 void loop() {
+#
+
 	wait(1);
 	float distCM = Ultrasonic1.detectCM();
 	float weightKG = Pins::Weight.read(); // TODO: convert analog signal to kilograms
@@ -93,7 +95,9 @@ void loop() {
 	bool PE_data2 = Pins::PhotoEl_2.read() == HIGH;
 	bool PE_data3 = Pins::PhotoEl_3.read() == HIGH;
 
-	int Capacitive_data = Pins::Capacitive.read(); // analog
+	cout << PE_data1 << endl << PE_data2 << endl << PE_data3 << endl;
 
-	TrashType trashtype = determine_trashtype(PE_data1 == true ? HIGH : LOW, Capacitive_data);
+	//int Capacitive_data = Pins::Capacitive.read(); // analog
+
+	//TrashType trashtype = determine_trashtype(PE_data1 == true ? HIGH : LOW, Capacitive_data);
 }

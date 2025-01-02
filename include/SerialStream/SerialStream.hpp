@@ -12,7 +12,12 @@ public:
 	SerialStreamPrint& operator<<(const T& value) {
 		if(enabled)_serial.print(value);
 		return *this;
-	}
+	};
+
+	SerialStreamPrint& operator<<(const bool value) {
+		if(enabled) _serial.print(value ? "true" : "false");
+		return *this;
+	};
 
 	// Support for manipulators like '\n'
 	SerialStreamPrint& operator<<(const char& value) {

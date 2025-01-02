@@ -1,38 +1,39 @@
 #include "Pin.hpp"
-#include "Arduino.h"
-Pin::Pin(uint8_t pin) {
-	this->val = pin;
-}
+//#include <Arduino.h>
 
-Pin::Pin(uint8_t pin, uint8_t mode) {
-	this->val = pin;
-	this->mode = mode;
-	pinMode(pin, mode);
-}
+//Pin::Pin(unsigned char pin) {
+//	this->val = pin;
+//}
 
-int Pin::read() {
-	if (digitalPinToPort(this->val) != NOT_A_PIN) {
-		return digitalRead(this->val);
-	} 
-	return analogRead(this->val);
-}
+//Pin::Pin(unsigned char pin, unsigned char mode) {
+//	this->val = pin;
+//	this->mode = mode;
+//	pinMode(pin, mode);
+//}
 
-void Pin::write(int value) {
-	if (digitalPinToPort(this->val) != NOT_A_PIN) {
-        digitalWrite(this->val, value);
-    } else 
-		analogWrite(this->val, value)
-	;
-}
+//int Pin::read() {
+//	if (digitalPinToPort(this->val) != NOT_A_PIN) {
+//		return digitalRead(this->val);
+//	} 
+//	return analogRead(this->val);
+//}
 
-Pin::operator int(){
-	return this->val;
-}
+//void Pin::write(int value) {
+//	if (digitalPinToPort(this->val) != NOT_A_PIN) {
+//        digitalWrite(this->val, value);
+//    } else 
+//		analogWrite(this->val, value)
+//	;
+//}
 
-Pin::operator uint32_t() { // unsigned int
-	return this->val;
-}
+//Pin::operator int(){
+//	return this->val;
+//}
 
-Pin::operator uint8_t() { // unsigned char
-	return this->val;
-}
+//Pin::operator unsigned() { // unsigned int
+//	return this->val;
+//}
+
+//Pin::operator unsigned char() { // unsigned char
+//	return this->val;
+//}
