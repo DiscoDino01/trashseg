@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "esp32-localserver",
+			"path": "../../../Users/aldec/OneDrive/Documents/PlatformIO/Projects/esp32-localserver"
+		}
+	],
+	"settings": {}
+}

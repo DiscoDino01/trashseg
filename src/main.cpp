@@ -1,20 +1,27 @@
 #include <Arduino.h> /* header files | required modules */
 #include <Vector.h>
 #include <Servo.h>
-#include <Pin/Pin.hpp>
+#include "RustType/RustType.hpp"
+
+#include "Pin/Pin.hpp"
 #include "SerialStream/SerialStream.hpp"
 #include "Ultrasonic/Ultrasonic.h"
 
+#define ANALOG
+#define DIGITAL
+#define TESTING
+#define ref
 
+#define HALT while(1);
 
 /// QOL variables|functions ///
 
-void wait(float seconds) {delay(seconds * 1000);}
+void wait(f32 seconds) {delay(seconds * 1000);}
 auto ms_wait = delay;
 auto mc_wait = delayMicroseconds;
 
-const float weight_minthreshold = 0.01;
-const float weight_maxthreshold = 1;
+const f32 weight_minthreshold = 0.1F;
+const f32 weight_maxthreshold = 3.0F;
 
 
 /// @brief Definition of all using pins
@@ -24,83 +31,127 @@ namespace Pins {
 		Pin echo(8);
 	};
 
-	Pin Servo(9); // automatically pinMode-ed by servo.attach
-	Pin PhotoEl_1(10, INPUT);
-	Pin PhotoEl_2(11, INPUT);
-	Pin PhotoEl_3(12, INPUT);
+	Pin PaperServo(9); 		// automatically pinMode-ed by servo.attach
+	Pin PlasticServo(10);	// ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	DIGITAL Pin PhotoEl_1(3, INPUT);
+	DIGITAL Pin PhotoEl_2(4, INPUT);
+	DIGITAL Pin PhotoEl_3(5, INPUT);
 
-	Pin Capacitive(A0, INPUT);
-	Pin Weight(A1, INPUT);
+	ANALOG Pin Capacitive(A0, INPUT);
+	ANALOG Pin Weight(A1, INPUT);
 }
 
 
 enum TrashType {
-	Plastic = 1,
+	Unknown = 0,
+	Plastic,
 	Paper,
 };
 
 
 /// Component Controllers ///
+namespace BinChute {
+	Servo paper_servo;
+	Servo plastic_servo;
+	Servo top_cover_servo;
 
-Ultrasonic Ultrasonic1;
-Servo servo;
+
+	void init() {
+		paper_servo.attach(Pins::PaperServo);
+		plastic_servo.attach(Pins::PlasticServo);
+		paper_servo.write(0);
+		plastic_servo.write(0);
+	}
+
+
+	void open_top_chute() {
+
+	}
+
+	void close_top_chute() {
+
+	}
+
+	void open_chute(TrashType tt) {
+		Servo *servo = nullptr;
+		switch (tt) {
+			case (Plastic):
+				servo = &paper_servo;
+				break;
+			
+			case (Paper):
+				servo = &plastic_servo;
+				break;
+
+			case (Unknown):
+			default: {return;}
+		}
+
+		servo->write(90);
+		wait(3);
+		servo->write(0);
+		wait(1.2);
+	}
+};
+
 
 
 /// functions i guess ///
 
-int triangle_wave(int n, int floor, int ceiling) {
-	int range = ceiling - floor;
+i32 triangle_wave(i32 n, i32 floor, i32 ceiling) {
+	i32 range = ceiling - floor;
 
-	int cyclePosition = (n - floor) % (2 * range);
+	i32 cyclePosition = (n - floor) % (2 * range);
 	if (cyclePosition < 0) {
 		cyclePosition += 2 * range;
 	}
 
 	if (cyclePosition > range) {
 		return ceiling - (cyclePosition - range);
-	} //else 
+	} //else
 	return floor + cyclePosition;
-}
+};
 
-inline TrashType determine_trashtype(int photoelectric_data, int capacitive_data) {
-	if (photoelectric_data == LOW){
+
+inline
+const TrashType determine_trashtype(i32 photoelectric_data, i32 capacitive_data) {
+	if (photoelectric_data == LOW) {
 		return Plastic;
 	}
 
 	return Paper;
 }
 
+
 /// setup && loop ///
 
 void setup() {
 	Serial.begin(/*UNOBAUD*/ 9600); // for faster prints: 115200
 
-	Ultrasonic1.init(Pins::Ultrasonic::trig, Pins::Ultrasonic::echo);
+	//Ultrasonic1.init(Pins::Ultrasonic::trig, Pins::Ultrasonic::echo);
+	BinChute::init();
 
-	servo.attach(Pins::Servo);
-	servo.write(0); // initialize to angle 0
-	
 	wait(3); // wait for 3 seconds
 }
 
 void loop() {
-#
-
-	wait(1);
-	float distCM = Ultrasonic1.detectCM();
-	float weightKG = Pins::Weight.read(); // TODO: convert analog signal to kilograms
-	if (distCM > 50.0F && weightKG <= weight_minthreshold) {
-		return;
-	}
+	static f32 analogtokg = 1;
+	wait(1); // throttle
 	
-	// boolean because its digital pins
-	bool PE_data1 = Pins::PhotoEl_1.read() /* == HIGH */;
-	bool PE_data2 = Pins::PhotoEl_2.read() /* == HIGH */;
-	bool PE_data3 = Pins::PhotoEl_3.read() /* == HIGH */;
+	ANALOG f32 weightKg = static_cast<f32>(Pins::Weight.read()) * analogtokg;
+	if (weightKg < weight_minthreshold) return;
 
-	cout << PE_data1 << endl << PE_data2 << endl << PE_data3 << endl;
+	ANALOG i32 CapacitiveData = Pins::Capacitive.read();
 
-	//int Capacitive_data = Pins::Capacitive.read(); // analog
+	DIGITAL bool PE1 = Pins::PhotoEl_1.read();
+	DIGITAL bool PE2 = Pins::PhotoEl_2.read();
+	DIGITAL bool PE3 = Pins::PhotoEl_3.read();
+	
+	TrashType determinedTrashType = determine_trashtype(PE1, CapacitiveData);
+	if (determinedTrashType == Unknown)
+		return;
 
-	//TrashType trashtype = determine_trashtype(PE_data1 == true ? HIGH : LOW, Capacitive_data);
+	BinChute::open_chute(determinedTrashType);
+	BinChute::open_top_chute();
+
 }

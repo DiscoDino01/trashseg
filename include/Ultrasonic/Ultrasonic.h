@@ -2,23 +2,24 @@
 
 //#ifndef ULTRASONIC_H
 #include <Arduino.h>
+#include "RustType/RustType.hpp" 
 //#define ULTRASONIC_H
 
 class Ultrasonic {
 private:
-	unsigned trigger, echo;
+	u8 trigger, echo;
 public:
-	static const float cmRatio = 0.017F;
+	static const f32 cmRatio = 0.017F;
 
-	unsigned get_trigpin() {
+	u8 get_trigpin() {
 		return trigger;
 	}
-	unsigned get_echopin(){return echo;}
+	u8 get_echopin(){return echo;}
 
 	/**
 	 * 
 	 */
-	void init(unsigned trigpin/* = -1 */, unsigned echopin/* = -1 */) {
+	void init(u8 trigpin/* = -1 */, u8 echopin/* = -1 */) {
 		//if (trigpin == -1 || echopin == -1)
 		//	return;
 		//
@@ -35,14 +36,14 @@ public:
 	 * @brief
 	 * @return duration
 	 */
-	unsigned long detect() {
+	u64 detect(i32 firstMicrosecondDelay = 2, i32 secondMicroSecondDelay = 10) {
 		digitalWrite(trigger, LOW);
-		delayMicroseconds(2);
+		delayMicroseconds(firstMicrosecondDelay);
 		digitalWrite(trigger, HIGH);
-		delayMicroseconds(10);
+		delayMicroseconds(secondMicroSecondDelay);
 		digitalWrite(trigger, LOW);
 
-		unsigned long duration = pulseIn(echo, HIGH);
+		u64 duration = pulseIn(echo, HIGH);
 		return duration;
 	};
 
@@ -52,8 +53,8 @@ public:
 	 * @return CM in distance
 	 * @brief 
 	 */
-	float detectCM() {
-		return ( (float) detect() ) * cmRatio;
+	f32 detectCM() {
+		return ( static_cast<f32>( detect() ) ) * cmRatio;
 	};
 };
 
