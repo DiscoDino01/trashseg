@@ -8,10 +8,10 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "C:/Documents/ultrasonic1/include",
-                "C:/Documents/ultrasonic1/src",
-                "C:/Documents/ultrasonic1/.pio/libdeps/uno/Servo/src",
-                "C:/Documents/ultrasonic1/.pio/libdeps/uno/Vector/src",
+                "C:/Documents/trashseg/include",
+                "C:/Documents/trashseg/src",
+                "C:/Documents/trashseg/.pio/libdeps/uno/Servo/src",
+                "C:/Documents/trashseg/.pio/libdeps/uno/Vector/src",
                 "C:/Users/aldec/.platformio/packages/framework-arduino-avr/cores/arduino",
                 "C:/Users/aldec/.platformio/packages/framework-arduino-avr/variants/standard",
                 "C:/Users/aldec/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
@@ -24,10 +24,10 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "C:/Documents/ultrasonic1/include",
-                    "C:/Documents/ultrasonic1/src",
-                    "C:/Documents/ultrasonic1/.pio/libdeps/uno/Servo/src",
-                    "C:/Documents/ultrasonic1/.pio/libdeps/uno/Vector/src",
+                    "C:/Documents/trashseg/include",
+                    "C:/Documents/trashseg/src",
+                    "C:/Documents/trashseg/.pio/libdeps/uno/Servo/src",
+                    "C:/Documents/trashseg/.pio/libdeps/uno/Vector/src",
                     "C:/Users/aldec/.platformio/packages/framework-arduino-avr/cores/arduino",
                     "C:/Users/aldec/.platformio/packages/framework-arduino-avr/variants/standard",
                     "C:/Users/aldec/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
