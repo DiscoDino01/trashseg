@@ -1,16 +1,16 @@
+// the ridiculous use of namespaces :)
+
 #include <Arduino.h> /* header files | required modules */
 #include <Vector.h>
 #include <Servo.h>
-#include "RustType/RustType.hpp"
+#include "Types/Types.hpp"
 
 #include "Pin/Pin.hpp"
 #include "SerialStream/SerialStream.hpp"
-#include "Ultrasonic/Ultrasonic.h"
 
-#define ANALOG
-#define DIGITAL
-#define TESTING
-#define ref
+#define ANALOG  
+#define DIGITAL  
+#define ref  
 
 #define HALT while(1);
 
@@ -26,13 +26,10 @@ const f32 weight_maxthreshold = 3.0F;
 
 /// @brief Definition of all using pins
 namespace Pins {
-	namespace Ultrasonic {
-		Pin trig(A0);
-		Pin echo(8);
-	};
+	DIGITAL Pin PaperServo(9); 		// automatically pinMode-d by `Servo::attach`
+	DIGITAL Pin PlasticServo(10);	// ^
+	DIGITAL Pin TopCoverServo(11);	// ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	Pin PaperServo(9); 		// automatically pinMode-ed by servo.attach
-	Pin PlasticServo(10);	// ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	DIGITAL Pin PhotoEl_1(3, INPUT);
 	DIGITAL Pin PhotoEl_2(4, INPUT);
 	DIGITAL Pin PhotoEl_3(5, INPUT);
@@ -59,29 +56,40 @@ namespace BinChute {
 	void init() {
 		paper_servo.attach(Pins::PaperServo);
 		plastic_servo.attach(Pins::PlasticServo);
+		top_cover_servo.attach(Pins::TopCoverServo);
+
 		paper_servo.write(0);
 		plastic_servo.write(0);
+		top_cover_servo.write(0);
 	}
 
 
-	void open_top_chute() {
-
+	void open_top_chute(bool delay = false) {
+		top_cover_servo.write(90);
+		if (delay) wait(1.5f);
 	}
 
-	void close_top_chute() {
-
+	void close_top_chute(bool delay = false) {
+		top_cover_servo.write(0);
+		if (delay) wait(1.5f);
 	}
 
+	/**
+	 * \brief The chute opens the opposite TrashType, i.e. Plastic moves the Paper's servo, Paper moves the Plastic's servo.
+	 * 
+	 */
 	void open_chute(TrashType tt) {
 		Servo *servo = nullptr;
 		switch (tt) {
-			case (Plastic):
+			case (Plastic): {
 				servo = &paper_servo;
 				break;
+			}
 			
-			case (Paper):
+			case (Paper): {
 				servo = &plastic_servo;
 				break;
+			}
 
 			case (Unknown):
 			default: {return;}
@@ -92,29 +100,32 @@ namespace BinChute {
 		servo->write(0);
 		wait(1.2);
 	}
+
+	/**
+	 * \brief Closes both the paper and plastic chute, by their servo.
+	 */
+	void close_both_chute(bool delay = false) {
+		paper_servo.write(0);
+		plastic_servo.write(0);
+
+		if (delay) wait(1.5f);
+	}
+
+	/**
+	 * \brief `ANALOG i32 read_weight()`
+	 */
+	ANALOG i32 read_weight() {
+		return Pins::Weight.read();
+	}
+
+	
 };
 
 
 
 /// functions i guess ///
 
-i32 triangle_wave(i32 n, i32 floor, i32 ceiling) {
-	i32 range = ceiling - floor;
-
-	i32 cyclePosition = (n - floor) % (2 * range);
-	if (cyclePosition < 0) {
-		cyclePosition += 2 * range;
-	}
-
-	if (cyclePosition > range) {
-		return ceiling - (cyclePosition - range);
-	} //else
-	return floor + cyclePosition;
-};
-
-
-inline
-const TrashType determine_trashtype(i32 photoelectric_data, i32 capacitive_data) {
+TrashType determine_trashtype(i32 photoelectric_data, i32 capacitive_data) {
 	if (photoelectric_data == LOW) {
 		return Plastic;
 	}
@@ -123,35 +134,41 @@ const TrashType determine_trashtype(i32 photoelectric_data, i32 capacitive_data)
 }
 
 
-/// setup && loop ///
+//~ setup && loop ~//
 
 void setup() {
 	Serial.begin(/*UNOBAUD*/ 9600); // for faster prints: 115200
 
-	//Ultrasonic1.init(Pins::Ultrasonic::trig, Pins::Ultrasonic::echo);
 	BinChute::init();
 
 	wait(3); // wait for 3 seconds
-}
+};
+
 
 void loop() {
 	static f32 analogtokg = 1;
-	wait(1); // throttle
+	wait(0.8f); // throttle
 	
-	ANALOG f32 weightKg = static_cast<f32>(Pins::Weight.read()) * analogtokg;
-	if (weightKg < weight_minthreshold) return;
+	f32 weightKg = static_cast<f32>(BinChute::read_weight()) * analogtokg;
+	if (weightKg < weight_minthreshold)
+		return;
+		/*
+	else if (weightKg > weight_maxthreshold)
+		HALT; // stop execution*/
 
-	ANALOG i32 CapacitiveData = Pins::Capacitive.read();
+	a_val CapacitiveData = Pins::Capacitive.read();
 
-	DIGITAL bool PE1 = Pins::PhotoEl_1.read();
-	DIGITAL bool PE2 = Pins::PhotoEl_2.read();
-	DIGITAL bool PE3 = Pins::PhotoEl_3.read();
+	d_val PE1 = Pins::PhotoEl_1.read();
+	d_val PE2 = Pins::PhotoEl_2.read();
+	d_val PE3 = Pins::PhotoEl_3.read();
 	
 	TrashType determinedTrashType = determine_trashtype(PE1, CapacitiveData);
 	if (determinedTrashType == Unknown)
 		return;
 
 	BinChute::open_chute(determinedTrashType);
-	BinChute::open_top_chute();
-
+	BinChute::open_top_chute(true);
+	wait(2.2f);
+	BinChute::close_top_chute(true);
+	BinChute::close_both_chute(true);
 }

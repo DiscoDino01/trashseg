@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 #include<USBAPI.h>
-#include "RustType/RustType.hpp"
+#include "Types/Types.hpp"
 
 class Pin {
 public:
