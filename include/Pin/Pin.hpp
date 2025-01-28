@@ -1,22 +1,21 @@
 #pragma once
 
 #include <Arduino.h>
-#include<USBAPI.h>
-#include "Types/Types.hpp"
+#include <stdint.h>
 
 class Pin {
 public:
-	explicit Pin(u8 pin) {
+	explicit Pin(uint8_t pin) {
 		this->val = pin;
 	};
 
-	explicit Pin(u8 pin, u8 mode) {
+	explicit Pin(uint8_t pin, uint8_t mode) {
 		this->val = pin;
 		this->mode = mode;
 		pinMode(pin, mode);
 	};
 
-	i32 read() {
+	int32_t read() {
 		if (digitalPinToPort(this->val) != NOT_A_PIN) {
 			return digitalRead(this->val);
 		} 
@@ -31,18 +30,18 @@ public:
 		;
 	};
 
-	inline u8 get_pin() {
+	inline uint8_t get_pin() {
 		return val;
 	}
 	
 	//void set_mode(int);
 	
-	operator i32(){return val;}; // probably needs static_cast (?)
+	operator int32_t(){return val;}; // probably needs static_cast (?)
 	operator u32(){return val;};
-	operator u8(){return val;};	
+	operator uint8_t(){return val;};	
 
 private:
-	u8 val;
-	u8 mode;
+	uint8_t val;
+	uint8_t mode;
 	//bool is_analog;
 };

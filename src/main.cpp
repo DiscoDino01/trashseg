@@ -3,25 +3,27 @@
 #include <Arduino.h> /* header files | required modules */
 #include <Vector.h>
 #include <Servo.h>
-#include "Types/Types.hpp"
+#include <stdint.h>
+#include "floattypes.h"
 
 #include "Pin/Pin.hpp"
 #include "SerialStream/SerialStream.hpp"
 
-#define ANALOG  
+#define STCAST(x,y) ( static_cast<y>(x) )
+
+#define ANALOG
 #define DIGITAL  
-#define ref  
 
 #define HALT while(1);
 
 /// QOL variables|functions ///
 
-void wait(f32 seconds) {delay(seconds * 1000);}
+void wait(float32_t seconds) {delay(seconds * 1000);}
 auto ms_wait = delay;
 auto mc_wait = delayMicroseconds;
 
-const f32 weight_minthreshold = 0.1F;
-const f32 weight_maxthreshold = 3.0F;
+const float32_t weight_minthreshold = 0.1F;
+const float32_t weight_maxthreshold = 3.0F;
 
 
 /// @brief Definition of all using pins
@@ -64,14 +66,12 @@ namespace BinChute {
 	}
 
 
-	void open_top_chute(bool delay = false) {
+	void open_top_chute() {
 		top_cover_servo.write(90);
-		if (delay) wait(1.5f);
 	}
 
-	void close_top_chute(bool delay = false) {
+	void close_top_chute() {
 		top_cover_servo.write(0);
-		if (delay) wait(1.5f);
 	}
 
 	/**
@@ -104,17 +104,15 @@ namespace BinChute {
 	/**
 	 * \brief Closes both the paper and plastic chute, by their servo.
 	 */
-	void close_both_chute(bool delay = false) {
+	void close_both_chute() {
 		paper_servo.write(0);
 		plastic_servo.write(0);
-
-		if (delay) wait(1.5f);
 	}
 
 	/**
-	 * \brief `ANALOG i32 read_weight()`
+	 * \brief `ANALOG int32_t read_weight()`
 	 */
-	ANALOG i32 read_weight() {
+	ANALOG int32_t read_weight() {
 		return Pins::Weight.read();
 	}
 
@@ -125,7 +123,7 @@ namespace BinChute {
 
 /// functions i guess ///
 
-TrashType determine_trashtype(i32 photoelectric_data, i32 capacitive_data) {
+TrashType determine_trashtype(int32_t photoelectric_data, int32_t capacitive_data) {
 	if (photoelectric_data == LOW) {
 		return Plastic;
 	}
@@ -146,29 +144,28 @@ void setup() {
 
 
 void loop() {
-	static f32 analogtokg = 1;
+	static float32_t analogtokg = 1;
 	wait(0.8f); // throttle
 	
-	f32 weightKg = static_cast<f32>(BinChute::read_weight()) * analogtokg;
+	float32_t weightKg = STCAST(BinChute::read_weight(), float32_t) * analogtokg;
 	if (weightKg < weight_minthreshold)
 		return;
-		/*
-	else if (weightKg > weight_maxthreshold)
-		HALT; // stop execution*/
 
-	a_val CapacitiveData = Pins::Capacitive.read();
+	ANALOG int32_t CapacitiveData = Pins::Capacitive.read();
 
-	d_val PE1 = Pins::PhotoEl_1.read();
-	d_val PE2 = Pins::PhotoEl_2.read();
-	d_val PE3 = Pins::PhotoEl_3.read();
+	DIGITAL int32_t PE1 = Pins::PhotoEl_1.read();
+	DIGITAL int32_t PE2 = Pins::PhotoEl_2.read();
+	DIGITAL int32_t PE3 = Pins::PhotoEl_3.read();
 	
 	TrashType determinedTrashType = determine_trashtype(PE1, CapacitiveData);
 	if (determinedTrashType == Unknown)
 		return;
 
 	BinChute::open_chute(determinedTrashType);
-	BinChute::open_top_chute(true);
+	BinChute::open_top_chute();
 	wait(2.2f);
-	BinChute::close_top_chute(true);
-	BinChute::close_both_chute(true);
+	BinChute::close_top_chute();
+	wait(1.1f);
+	BinChute::close_both_chute();
+	wait(1.1f);
 }
