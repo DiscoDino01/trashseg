@@ -5,6 +5,8 @@
 
 class Pin {
 public:
+	explicit Pin() = default;
+
 	explicit Pin(uint8_t pin) {
 		this->val = pin;
 	};

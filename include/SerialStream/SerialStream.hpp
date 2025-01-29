@@ -5,6 +5,9 @@
 class SerialStreamPrint {
 public:
 	bool enabled = true;
+	void begin(uint32_t baud) {
+		_serial.begin(baud);
+	}
 	// Constructor to allow specifying which HardwareSerial port to use, defaults to Serial
 	SerialStreamPrint(HardwareSerial& hs = Serial) : _serial(hs) {}
 
